@@ -7,9 +7,30 @@ import java.util.Set;
 
 public class Product {
 
-    private Long productId;
-    private Set<Component> consistsOf;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setConsistsOf(Set<Component> consistsOf) {
+        this.consistsOf = consistsOf;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
     private String name;
+    private Set<Component> consistsOf;
+
+    private Long productId;
     private float price;
     private String currency;
 
@@ -20,14 +41,6 @@ public class Product {
     public String getCurrency() {
         return currency;
     }
-
-    public Product(Set<Component> consistsOf, String name, float price, String currency) {
-        this.consistsOf = consistsOf;
-        this.name = name;
-        this.price = price;
-        this.currency = currency;
-    }
-
     public Set<Component> getConsistsOf() {
         return consistsOf;
     }
@@ -38,9 +51,5 @@ public class Product {
 
     public String getName() {
         return name;
-    }
-
-    public float getPriceAfterExchange(float exchangeRate){
-        return this.price * exchangeRate;
     }
 }

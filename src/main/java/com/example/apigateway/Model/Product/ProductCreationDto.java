@@ -4,7 +4,8 @@ import com.example.apigateway.Model.Component;
 
 import java.util.Set;
 
-public class ProductCreationDTO {
+public class ProductCreationDto {
+    private Long id = null;
     private String name;
     private Set<Component> consistsOf;
 
@@ -16,8 +17,19 @@ public class ProductCreationDTO {
         return consistsOf;
     }
 
-    public ProductCreationDTO(String name, Set<Component> consistsOf) {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
         this.name = name;
+    }
+
+    public void setConsistsOf(Set<Component> consistsOf) {
         this.consistsOf = consistsOf;
     }
 }
