@@ -1,4 +1,4 @@
-package com.example.apigateway.Model.Product;
+package com.example.apigateway.model.Product;
 
 public class ProductDto {
     private Long productId;

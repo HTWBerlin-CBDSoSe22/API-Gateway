@@ -1,8 +1,7 @@
-package com.example.apigateway.Model.Product;
+package com.example.apigateway.model.Product;
 
-import com.example.apigateway.Model.Component;
+import com.example.apigateway.model.Component;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class Product {
@@ -52,4 +51,9 @@ public class Product {
     public String getName() {
         return name;
     }
+
+    public Product() {
+    }
+
+
 }

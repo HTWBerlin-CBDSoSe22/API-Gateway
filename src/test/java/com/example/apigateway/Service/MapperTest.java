@@ -1,8 +1,8 @@
 package com.example.apigateway.Service;
 
-import com.example.apigateway.Model.Component;
-import com.example.apigateway.Model.Product.Product;
-import com.example.apigateway.Model.Product.ProductCreationDto;
+import com.example.apigateway.model.Component;
+import com.example.apigateway.model.Product.Product;
+import com.example.apigateway.model.Product.ProductCreationDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;

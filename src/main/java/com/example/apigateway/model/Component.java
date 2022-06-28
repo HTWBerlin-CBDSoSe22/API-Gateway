@@ -1,4 +1,4 @@
-package com.example.apigateway.Model;
+package com.example.apigateway.model;
 
 public class Component {
     private Long componentId;
@@ -21,6 +21,9 @@ public class Component {
     private String classification;
 
     private String harvestSeason;
+
+    public Component() {
+    }
 
     public Component(String name, double price, double height, double weight, String color, String countryOfOrigin, String grade, String category, String classification, String harvestSeason) {
         this.name = name;

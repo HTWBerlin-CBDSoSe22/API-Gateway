@@ -1,6 +1,6 @@
-package com.example.apigateway.Model.Product;
+package com.example.apigateway.model.Product;
 
-import com.example.apigateway.Model.Component;
+import com.example.apigateway.model.Component;
 
 import java.util.Set;
 
@@ -31,5 +31,8 @@ public class ProductCreationDto {
 
     public void setConsistsOf(Set<Component> consistsOf) {
         this.consistsOf = consistsOf;
+    }
+
+    public ProductCreationDto() {
     }
 }

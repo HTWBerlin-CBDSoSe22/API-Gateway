@@ -1,6 +1,6 @@
 package com.example.apigateway.Service;
 
-import com.example.apigateway.Model.Product.ProductCreationDto;
+import com.example.apigateway.model.Product.ProductCreationDto;
 import com.example.apigateway.amqp.Config;
 import com.example.apigateway.service.ProductService;
 import org.junit.Before;
