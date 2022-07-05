@@ -1,12 +1,13 @@
 package com.example.apigateway.service;
 
-import com.example.apigateway.exception.ProductServiceQueueException;
 import com.example.apigateway.model.Component;
 import com.example.apigateway.model.CurrencyExchangeDto;
 import com.example.apigateway.model.Product.Product;
 import com.example.apigateway.model.Product.ProductCreationDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,18 +34,17 @@ public class ProductService {
         this.asyncRabbitTemplate = asyncRabbitTemplate;
     }
 
-    public Product showFullProduct(ProductCreationDto productToCreate){
-        Product createdProduct;
-        ProductCreationDto createdProductFromProductMS = rabbitTemplate.convertSendAndReceiveAsType(
+    public List<ProductCreationDto> showAllProducts(){
+        List<ProductCreationDto> listOfAllProducts;
+        listOfAllProducts = rabbitTemplate.convertSendAndReceiveAsType(
                 directExchange.getName(),
-                "createProduct",
-                productToCreate,
+                "getInformation",
+                "showProducts",
                 new ParameterizedTypeReference<>() {
                 });
-
-        createdProduct = modelMapper.map(createdProductFromProductMS, Product.class);
-        return createdProduct;
+        return listOfAllProducts;
     }
+
 
     /**
      * create or get details of a product in database with associated price in specified currency
@@ -52,33 +52,35 @@ public class ProductService {
      */
     public Product showProduct(ProductCreationDto productToCreateOrShow, CurrencyExchangeDto currencyExchange) {
         Product productToReturn = new Product();
+        productToReturn.setCurrency(currencyExchange.getOldCurrency());
 
         ListenableFuture<ProductCreationDto> listenableFutureFromProductMS = createOrShowProduct(productToCreateOrShow);
         ListenableFuture listenableFutureFromPriceMS = produceCalculationOfPriceRequest(productToCreateOrShow);
         ListenableFuture listenableFutureCurrency = produceExchangeRateRequest(currencyExchange);
 
+        // try to read separately from queues and adept the returning product with information from service
         try {
             ProductCreationDto createdProductReceived = listenableFutureFromProductMS.get();
             productToReturn = modelMapper.map(createdProductReceived, Product.class);
-            return productToReturn;
+
         } catch (InterruptedException | ExecutionException e) {
-            //throw new ProductServiceQueueException("couldn't create or get product from Product Service");
+            e.printStackTrace();
         }
         try {
-            String price = String.valueOf(listenableFutureFromPriceMS.get());
-            productToReturn.setPrice(Float.parseFloat(price));
-            productToReturn.setCurrency(currencyExchange.getOldCurrency());
+            if(listenableFutureFromPriceMS != null) {
+                String price = String.valueOf(listenableFutureFromPriceMS.get());
+                productToReturn.setPrice(Float.parseFloat(price));
+            }
         } catch (InterruptedException | ExecutionException e) {
-            System.err.println(e);
+            e.printStackTrace();
         }
         try {
             String exchangeRate = String.valueOf(listenableFutureCurrency.get());
             productToReturn.setPrice(productToReturn.getPrice() * Float.parseFloat(exchangeRate));
             productToReturn.setCurrency(currencyExchange.getNewCurrency());
         } catch (InterruptedException | ExecutionException e) {
-            System.err.println(e);
+            e.printStackTrace();
         }
-        System.out.println("test");
         return productToReturn;
     }
 
@@ -91,9 +93,12 @@ public class ProductService {
                         });
     }
     private ListenableFuture produceCalculationOfPriceRequest(ProductCreationDto productToCreateOrShow){
-        List pricesOfComponents = new ArrayList();
+        if(productToCreateOrShow.getConsistsOf()==null){
+            return null;
+        }
+        List<Float> pricesOfComponents = new ArrayList<>();
         for(Component c : productToCreateOrShow.getConsistsOf()){
-            pricesOfComponents.add(c.getPrice());
+            pricesOfComponents.add((float)c.getPrice());
         }
         return asyncRabbitTemplate.convertSendAndReceive(
                 directExchange.getName(),
@@ -108,6 +113,4 @@ public class ProductService {
                 new ParameterizedTypeReference<>() {
                 });
     }
-
-
 }

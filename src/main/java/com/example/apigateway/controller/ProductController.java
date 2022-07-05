@@ -18,19 +18,27 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    List<ProductDto> getAllProducts() {
-        List<ProductDto> listOfAllProducts = new ArrayList<>();
+    List<ProductCreationDto> getAllProducts() {
+        List<ProductCreationDto> listOfAllProducts = new ArrayList<>();
+        listOfAllProducts = this.productService.showAllProducts();
         return  listOfAllProducts;
     }
     @GetMapping(path = "/{productId}")
-    void findSingleProductById(@PathVariable("productId") long productId){
-        //ProductDTO singleProduct = ...;
-    }
-    @PostMapping
-    Product createProduct(@RequestParam String newCurrency, @RequestParam String currentCurrency, @RequestBody ProductCreationDto productToCreate){
+    Product findSingleProductById(@RequestParam(defaultValue = "Euro") String newCurrency, @RequestParam(defaultValue = "Euro") String currentCurrency,@PathVariable("productId") long productId){
         CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
         currencyExchange.setOldCurrency(currentCurrency);
         currencyExchange.setNewCurrency(newCurrency);
+        ProductCreationDto productToGet = new ProductCreationDto();
+        productToGet.setId(productId);
+        Product createdProduct = this.productService.showProduct(productToGet, currencyExchange);
+        return createdProduct;
+    }
+    @PostMapping
+    Product createProduct(@RequestParam(defaultValue = "Euro") String newCurrency, @RequestParam(defaultValue = "Euro") String currentCurrency, @RequestBody ProductCreationDto productToCreate){
+        CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
+        currencyExchange.setOldCurrency(currentCurrency);
+        currencyExchange.setNewCurrency(newCurrency);
+        // if id is null -> ProductMS creates Product
         productToCreate.setId(null);
         Product createdProduct = this.productService.showProduct(productToCreate, currencyExchange);
         return createdProduct;

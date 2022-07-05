@@ -23,6 +23,10 @@ public class Config {
     public Queue queue() {
         return new Queue("productQueue");
     }
+    @Bean
+    public Queue queue2() {
+        return new Queue("componentQueue");
+    }
 
     @Bean
     public Binding binding(DirectExchange directExchange,
@@ -30,6 +34,13 @@ public class Config {
         return BindingBuilder.bind(queue)
                 .to(directExchange)
                 .with("createProduct");
+    }
+    @Bean
+    public Binding binding2(DirectExchange directExchange,
+                           Queue queue2) {
+        return BindingBuilder.bind(queue2)
+                .to(directExchange)
+                .with("getInformation");
     }
 
     @Bean

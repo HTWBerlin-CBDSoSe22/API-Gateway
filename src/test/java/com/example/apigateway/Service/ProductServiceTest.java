@@ -19,7 +19,6 @@ public class ProductServiceTest {
     private ProductService productService;
     private RabbitTemplate rabbitTemplateMock;
     private AsyncRabbitTemplate asyncRabbitTemplateMock;
-    private DirectExchange directExchange;
     @Autowired
     private ModelMapper modelMapper = new ModelMapper();
     @Autowired
@@ -36,7 +35,7 @@ public class ProductServiceTest {
     @Test
     public void testCreateProduct() {
         ProductCreationDto productToCreate = new ProductCreationDto();
-        assertThatCode(() -> this.productService.showFullProduct(productToCreate)).doesNotThrowAnyException();
+        assertThatCode(() -> this.productService.showAllProducts()).doesNotThrowAnyException();
         Mockito.verify(this.rabbitTemplateMock).convertSendAndReceiveAsType(
                 config.directExchange().getName(),
                 "createProduct",
