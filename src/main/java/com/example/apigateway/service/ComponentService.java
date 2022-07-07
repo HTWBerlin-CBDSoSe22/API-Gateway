@@ -1,7 +1,9 @@
 package com.example.apigateway.service;
 
+import com.example.apigateway.exception.ComponentNotDeserializeException;
 import com.example.apigateway.exception.ComponentsNotFoundException;
 import com.example.apigateway.model.Component;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,29 +24,32 @@ public class ComponentService {
     }
 
     public List<Component> showAllComponents() throws ComponentsNotFoundException {
-        List<Component> listOfAllComponents;
-        listOfAllComponents = rabbitTemplate.convertSendAndReceiveAsType(
+        List<Component> listOfAllComponents = rabbitTemplate.convertSendAndReceiveAsType(
                 directExchange.getName(),
                 "getInformation",
                 "showComponents",
                 new ParameterizedTypeReference<>() {
                 });
         if(listOfAllComponents == null) {
-            throw new ComponentsNotFoundException("no components found");
+            throw new ComponentsNotFoundException();
         }
         return listOfAllComponents;
     }
 
-    public Component showSingleComponent(long componentId) throws ComponentsNotFoundException {
+    public Component showSingleComponent(long componentId) throws ComponentsNotFoundException, ComponentNotDeserializeException {
         Component singleComponent;
-        singleComponent = rabbitTemplate.convertSendAndReceiveAsType(
-                directExchange.getName(),
-                "getInformation",
-                componentId,
-                new ParameterizedTypeReference<>() {
-                });
+        try {
+            singleComponent = rabbitTemplate.convertSendAndReceiveAsType(
+                    directExchange.getName(),
+                    "getInformation",
+                    componentId,
+                    new ParameterizedTypeReference<>() {
+                    });
+        } catch(RuntimeException e){
+            throw new ComponentNotDeserializeException();
+        }
         if(singleComponent == null) {
-            throw new ComponentsNotFoundException("single component not found");
+            throw new ComponentsNotFoundException();
         }
         return singleComponent;
     }
