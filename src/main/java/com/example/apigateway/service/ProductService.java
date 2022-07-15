@@ -1,6 +1,7 @@
 package com.example.apigateway.service;
 
 import com.example.apigateway.exception.ProductAssemblyException;
+import com.example.apigateway.exception.ProductNotFoundException;
 import com.example.apigateway.model.Component;
 import com.example.apigateway.model.CurrencyExchangeDto;
 import com.example.apigateway.model.Product.Product;
@@ -69,18 +70,44 @@ public class ProductService {
         }
         return productToShow;
     }
-
+    public Product showSingleProductInDetail(ProductCreationDto productToCreateOrShow, CurrencyExchangeDto currencyExchange) throws ProductNotFoundException {
+        Product productToShow = new Product();
+        Future<ProductCreationDto> futureProductCreationDtoFromService = getProductFromService(productToCreateOrShow);
+        Future<Float> exchangeRate = getExchangeRateFromService(currencyExchange);
+        // in neue methode ?
+        while(true) {
+            if (futureProductCreationDtoFromService.isDone()) {
+                break;
+            }
+        }
+        ProductCreationDto productCreationDtoFromService;
+        try {
+            productCreationDtoFromService = futureProductCreationDtoFromService.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new ProductNotFoundException();
+        }
+        Future<Float> priceOfProduct = getPriceFromService(productCreationDtoFromService);
+        while(true){
+            if(priceOfProduct.isDone() && exchangeRate.isDone()) {
+                try {
+                    productToShow = assembleProduct(futureProductCreationDtoFromService, priceOfProduct, exchangeRate);
+                }catch (ProductAssemblyException e){
+                }
+                break;
+            }
+        }
+        return productToShow;
+    }
     private Product assembleProduct(Future<ProductCreationDto> productToReturn, Future<Float> priceOfProduct, Future<Float> exchangeRate) throws ProductAssemblyException {
         Product assembledProduct;
         try {
-            assembledProduct = productMapper.map(productToReturn, Product.class);
+            assembledProduct = productMapper.map(productToReturn.get(), Product.class);
             assembledProduct.setPrice(priceOfProduct.get() * exchangeRate.get());
         } catch (InterruptedException | ExecutionException e ) {
             throw new ProductAssemblyException();
         }
-        return new Product();
+        return assembledProduct;
     }
-
     @Async
     public Future<Float> getPriceFromService(ProductCreationDto productToCreateOrShow) {
         ListenableFuture listenableFuturePrice = produceCalculationOfPrice(productToCreateOrShow);

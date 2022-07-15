@@ -1,5 +1,6 @@
 package com.example.apigateway.controller;
 
+import com.example.apigateway.exception.ProductNotFoundException;
 import com.example.apigateway.model.CurrencyExchangeDto;
 import com.example.apigateway.model.Product.Product;
 import com.example.apigateway.model.Product.ProductCreationDto;
@@ -30,10 +31,14 @@ public class ProductController {
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, currentCurrency);
         ProductCreationDto productToGet = new ProductCreationDto();
         productToGet.setId(productId);
-        Product createdProduct = this.productService.showOrCreateProduct(productToGet, currencyExchange);
-        return createdProduct;
+        Product detailedProduct;
+        try {
+            detailedProduct = this.productService.showSingleProductInDetail(productToGet, currencyExchange);
+        } catch (ProductNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return detailedProduct;
     }
-
     @PostMapping
     Product createProduct(@RequestParam(defaultValue = "Euro") String newCurrency, @RequestParam(defaultValue = "Euro") String oldCurrency, @RequestBody ProductCreationDto productToCreate){
         if(!productHasComponents(productToCreate))
