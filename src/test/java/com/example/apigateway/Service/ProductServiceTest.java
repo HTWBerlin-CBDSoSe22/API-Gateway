@@ -1,13 +1,12 @@
 package com.example.apigateway.Service;
 
-import com.example.apigateway.model.Product.ProductCreationDto;
+import com.example.apigateway.model.Product.ProductMicroserviceDto;
 import com.example.apigateway.amqp.Config;
 import com.example.apigateway.service.ProductService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.modelmapper.ModelMapper;
-import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,7 @@ public class ProductServiceTest {
 
     @Test
     public void testCreateProduct() {
-        ProductCreationDto productToCreate = new ProductCreationDto();
+        ProductMicroserviceDto productToCreate = new ProductMicroserviceDto();
         assertThatCode(() -> this.productService.showAllProducts()).doesNotThrowAnyException();
         Mockito.verify(this.rabbitTemplateMock).convertSendAndReceiveAsType(
                 config.directExchange().getName(),

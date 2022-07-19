@@ -2,7 +2,7 @@ package com.example.apigateway.Service;
 
 import com.example.apigateway.model.Component;
 import com.example.apigateway.model.Product.Product;
-import com.example.apigateway.model.Product.ProductCreationDto;
+import com.example.apigateway.model.Product.ProductMicroserviceDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.modelmapper.ModelMapper;
@@ -28,12 +28,12 @@ public class MapperTest {
                 "winter");
         Set<Component> componentsOfProduct = new HashSet<>();
         componentsOfProduct.add(testComponent);
-        ProductCreationDto productCreationDto = new ProductCreationDto();
-        productCreationDto.setName("defaultProduct1");
-        productCreationDto.setConsistsOf(componentsOfProduct);
+        ProductMicroserviceDto productMicroserviceDto = new ProductMicroserviceDto();
+        productMicroserviceDto.setName("defaultProduct1");
+        productMicroserviceDto.setConsistsOf(componentsOfProduct);
 
-        Product product = modelMapper.map(productCreationDto, Product.class);
-        assertEquals(productCreationDto.getName(),product.getName());
+        Product product = modelMapper.map(productMicroserviceDto, Product.class);
+        assertEquals(productMicroserviceDto.getName(),product.getName());
     }
 
 
