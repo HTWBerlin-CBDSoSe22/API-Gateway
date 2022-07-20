@@ -21,7 +21,7 @@ public class MapperTest {
     }
 
     @Test
-    public void whenConvertProductCreationDtoToProduct_thenCorrect() {
+    public void whenConvertProductMicroserviceDtoToProduct_thenCorrect() {
         Component testComponent = new Component("Banana",0.75,
                 13,120,"yellow","Ecuador",
                 "H. extra","dry","Tropical fruit",
@@ -34,6 +34,22 @@ public class MapperTest {
 
         Product product = modelMapper.map(productMicroserviceDto, Product.class);
         assertEquals(productMicroserviceDto.getName(),product.getName());
+    }@Test
+    public void whenConvertProductToProductMicroserviceDto_thenCorrect() {
+        Component testComponent = new Component("Banana",0.75,
+                13,120,"yellow","Ecuador",
+                "H. extra","dry","Tropical fruit",
+                "winter");
+        Set<Component> componentsOfProduct = new HashSet<>();
+        componentsOfProduct.add(testComponent);
+        Product product = new Product();
+        product.setName("fruitSalad1");
+        product.setConsistsOf(componentsOfProduct);
+        product.setProductId((long)123456789);
+        product.setCurrency("Euro");
+
+        ProductMicroserviceDto productMicroserviceDto = modelMapper.map(product, ProductMicroserviceDto.class);
+        assertEquals(product.getName(),productMicroserviceDto.getName());
     }
 
 

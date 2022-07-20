@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 public class ProductServiceTest {
@@ -41,20 +42,77 @@ public class ProductServiceTest {
     }
 
     @Test
-    public void testAssembleProductProduct() throws ExecutionException, InterruptedException, ProductAssemblyException {
+    public void testAssembleProductProductGood01() throws ExecutionException, InterruptedException, ProductAssemblyException {
+        CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
+        currencyExchange.setNewCurrency("Euro");
+        currencyExchange.setOldCurrency("Dollar");
+        Product productToAssemble = new Product();
+        productToAssemble.setName("prod1");
+        productToAssemble.setProductId((long)1);
+        productToAssemble.setCurrency("Euro");
+        productToAssemble.setPrice(2f);
+        when(mockedFutureProductMicroserviceDto.get()).thenReturn(modelMapper.map(productToAssemble, ProductMicroserviceDto.class));
+        when(mockedFuturePriceOfProduct.get()).thenReturn(1f);
+        when(mockedFutureExchangeRate.get()).thenReturn(2f);
+        Product assembledProduct = productService.assembleProduct(mockedFutureProductMicroserviceDto, mockedFuturePriceOfProduct, mockedFutureExchangeRate, currencyExchange);
+        Assert.assertEquals(productToAssemble.getProductId(),assembledProduct.getProductId());  // 1 long
+        Assert.assertEquals("prod1",assembledProduct.getName());
+        Assert.assertEquals(2f,assembledProduct.getPrice(), 0.0001);
+        Assert.assertEquals("Euro",assembledProduct.getCurrency());
+    }
+    @Test
+    public void testAssembleProductProductWithoutValidPrice() throws ExecutionException, InterruptedException, ProductAssemblyException {
         CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
         currencyExchange.setNewCurrency("Euro");
         currencyExchange.setOldCurrency("Dollar");
         Product expectedProduct = new Product();
         expectedProduct.setName("prod1");
-        expectedProduct.setProductId(1l);
+        expectedProduct.setProductId((long)5);
         expectedProduct.setCurrency("Euro");
-        expectedProduct.setPrice(2l);
+        expectedProduct.setPrice(2f);
         when(mockedFutureProductMicroserviceDto.get()).thenReturn(modelMapper.map(expectedProduct, ProductMicroserviceDto.class));
-        when(mockedFuturePriceOfProduct.get()).thenReturn(1f);
+        when(mockedFuturePriceOfProduct.get()).thenReturn(-1f);
         when(mockedFutureExchangeRate.get()).thenReturn(2f);
         Product assembledProduct = productService.assembleProduct(mockedFutureProductMicroserviceDto, mockedFuturePriceOfProduct, mockedFutureExchangeRate, currencyExchange);
-        Assert.assertEquals(expectedProduct.getProductId(),assembledProduct.getProductId());
+        Assert.assertEquals(expectedProduct.getProductId(),assembledProduct.getProductId());    // 5 long
+        Assert.assertEquals("prod1",assembledProduct.getName());
+        Assert.assertEquals(0f,assembledProduct.getPrice(), 0.0001);
+        Assert.assertEquals(null,assembledProduct.getCurrency());
+    }
+    @Test
+    public void testAssembleProductProductWithoutValidCurrency() throws ExecutionException, InterruptedException, ProductAssemblyException {
+        CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
+        currencyExchange.setNewCurrency("Euro");
+        currencyExchange.setOldCurrency("Dollar");
+        Product expectedProduct = new Product();
+        expectedProduct.setName("prod3");
+        expectedProduct.setProductId((long)5);
+        expectedProduct.setCurrency("Euro");
+        expectedProduct.setPrice(2f);
+        when(mockedFutureProductMicroserviceDto.get()).thenReturn(modelMapper.map(expectedProduct, ProductMicroserviceDto.class));
+        when(mockedFuturePriceOfProduct.get()).thenReturn(10f);
+        when(mockedFutureExchangeRate.get()).thenReturn(-99.5f);
+        Product assembledProduct = productService.assembleProduct(mockedFutureProductMicroserviceDto, mockedFuturePriceOfProduct, mockedFutureExchangeRate, currencyExchange);
+        Assert.assertEquals(expectedProduct.getProductId(),assembledProduct.getProductId());    // 5 long
+        Assert.assertEquals("prod3",assembledProduct.getName());
+        Assert.assertEquals(0f,assembledProduct.getPrice(), 0.0001);
+        Assert.assertEquals(null,assembledProduct.getCurrency());
+    }
+    @Test
+    public void testAssembleProductProductShouldThrowProductAssemblyException() throws ExecutionException, InterruptedException, ProductAssemblyException {
+        CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
+        currencyExchange.setNewCurrency("Euro");
+        currencyExchange.setOldCurrency("Dollar");
+        Product expectedProduct = new Product();
+        expectedProduct.setName("prod3");
+        expectedProduct.setProductId((long)5);
+        expectedProduct.setCurrency("Euro");
+        when(mockedFutureProductMicroserviceDto.get()).thenReturn(modelMapper.map(expectedProduct, ProductMicroserviceDto.class));
+        when(mockedFuturePriceOfProduct.get()).thenReturn(10f);
+        when(mockedFutureExchangeRate.get()).thenThrow(new InterruptedException());
+        assertThrows(ProductAssemblyException.class, () ->
+            productService.assembleProduct(mockedFutureProductMicroserviceDto, mockedFuturePriceOfProduct, mockedFutureExchangeRate, currencyExchange));
+
     }
 
 }
