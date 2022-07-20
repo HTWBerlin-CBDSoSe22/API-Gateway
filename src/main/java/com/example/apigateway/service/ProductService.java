@@ -56,7 +56,7 @@ public class ProductService {
         while(true){
             if(servicesAreDone(productMicroserviceDtoFromService, priceOfProduct, exchangeRate)) {
                 try {
-                    productToShow = assembleProduct(productMicroserviceDtoFromService, priceOfProduct, exchangeRate);
+                    productToShow = assembleProduct(productMicroserviceDtoFromService, priceOfProduct, exchangeRate, currencyExchange);
                 }catch (ProductAssemblyException e){
                 }
                 break;
@@ -71,14 +71,17 @@ public class ProductService {
         Future<Float> exchangeRate = getExchangeRateFromService(currencyExchange);
         productMicroserviceDtoFromService = getProductData(futureProductCreationDtoFromService);
         Future<Float> priceOfProduct = getPriceFromService(productMicroserviceDtoFromService);
-        productToShow = waitForPriceOfProduct(productToShow, futureProductCreationDtoFromService, priceOfProduct, exchangeRate);
+        productToShow = waitForPriceOfProduct(productToShow, futureProductCreationDtoFromService, priceOfProduct, exchangeRate, currencyExchange);
         return productToShow;
     }
-    private Product assembleProduct(Future<ProductMicroserviceDto> productToReturn, Future<Float> priceOfProduct, Future<Float> exchangeRate) throws ProductAssemblyException {
+    public Product assembleProduct(Future<ProductMicroserviceDto> productToReturn, Future<Float> priceOfProduct, Future<Float> exchangeRate, CurrencyExchangeDto currencyExchange) throws ProductAssemblyException {
         Product assembledProduct;
         try {
             assembledProduct = productMapper.map(productToReturn.get(), Product.class);
-            assembledProduct.setPrice(priceOfProduct.get() * exchangeRate.get());
+            if(exchangeRate.get() >= 0 && priceOfProduct.get() >= 0) {
+                assembledProduct.setPrice(priceOfProduct.get() * exchangeRate.get());
+                assembledProduct.setCurrency(currencyExchange.getNewCurrency());
+            }
         } catch (InterruptedException | ExecutionException e ) {
             throw new ProductAssemblyException();
         }
@@ -92,11 +95,10 @@ public class ProductService {
                 String price = String.valueOf(listenableFuturePrice.get());
                 return new AsyncResult<>(Float.parseFloat(price));
             }
-            return new AsyncResult<>(-1f);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            return new AsyncResult<>(-1f);
         }
+        return new AsyncResult<>(-1f);
     }
     @Async
     public Future<Float> getExchangeRateFromService(CurrencyExchangeDto currencyExchange){
@@ -171,11 +173,11 @@ public class ProductService {
             throw new ProductNotFoundException();
         }
     }
-    private Product waitForPriceOfProduct(Product productToShow, Future<ProductMicroserviceDto> futureProductCreationDtoFromService, Future<Float> priceOfProduct, Future<Float> exchangeRate){
+    private Product waitForPriceOfProduct(Product productToShow, Future<ProductMicroserviceDto> futureProductCreationDtoFromService, Future<Float> priceOfProduct, Future<Float> exchangeRate, CurrencyExchangeDto currencyExchange){
         while(true){
             if(priceOfProduct.isDone() && exchangeRate.isDone()) {
                 try {
-                    productToShow = assembleProduct(futureProductCreationDtoFromService, priceOfProduct, exchangeRate);
+                    productToShow = assembleProduct(futureProductCreationDtoFromService, priceOfProduct, exchangeRate, currencyExchange);
                 }catch (ProductAssemblyException e){
                     e.printStackTrace();
                 }
