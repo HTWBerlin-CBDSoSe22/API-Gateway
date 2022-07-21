@@ -4,7 +4,7 @@ import com.example.apigateway.model.Component;
 
 import java.util.Set;
 
-public class ProductCreationDto {
+public class ProductMicroserviceDto {
     private Long id = null;
     private String name;
     private Set<Component> consistsOf;
@@ -33,6 +33,6 @@ public class ProductCreationDto {
         this.consistsOf = consistsOf;
     }
 
-    public ProductCreationDto() {
+    public ProductMicroserviceDto() {
     }
 }
