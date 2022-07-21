@@ -27,7 +27,7 @@ public class ComponentController {
         return  listOfAllComponents;
     }
     @GetMapping(path = "/{componentId}")
-    Component findSingleById(@PathVariable("componentId") long componentId) {
+    Component findSingleComponentById(@PathVariable("componentId") long componentId) {
         Component singleComponent;
         try {
             singleComponent = this.componentService.showSingleComponent(componentId);
