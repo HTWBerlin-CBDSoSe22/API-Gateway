@@ -3,9 +3,11 @@ package com.example.apigateway.service;
 import com.example.apigateway.exception.ProductAssemblyException;
 import com.example.apigateway.exception.ProductNotFoundException;
 import com.example.apigateway.model.Component;
+import com.example.apigateway.model.ComponentPrices;
 import com.example.apigateway.model.CurrencyExchangeDto;
 import com.example.apigateway.model.Product.Product;
 import com.example.apigateway.model.Product.ProductMicroserviceDto;
+import com.example.apigateway.model.ProductPrice;
 import org.modelmapper.ModelMapper;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate;
@@ -89,11 +91,11 @@ public class ProductService {
     }
     @Async
     public Future<Float> getPriceFromService(ProductMicroserviceDto productToCreateOrShow) {
-        ListenableFuture listenableFuturePrice = produceCalculationOfPrice(productToCreateOrShow);
+        ListenableFuture<ProductPrice> listenableFuturePrice = produceCalculationOfPrice(productToCreateOrShow);
         try {
             if(listenableFuturePrice != null) {
-                String price = String.valueOf(listenableFuturePrice.get());
-                return new AsyncResult<>(Float.parseFloat(price));
+                ProductPrice priceOfProduct = listenableFuturePrice.get();
+                return new AsyncResult<>(priceOfProduct.getPrice());
             }
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
@@ -131,12 +133,15 @@ public class ProductService {
                         new ParameterizedTypeReference<>() {
                         });
     }
-    private ListenableFuture produceCalculationOfPrice(ProductMicroserviceDto productToShowOrCreate){
+    private ListenableFuture<ProductPrice> produceCalculationOfPrice(ProductMicroserviceDto productToShowOrCreate){
         List<Float> pricesOfComponents = getPricesOfComponentsInProduct(productToShowOrCreate);
-        return asyncRabbitTemplate.convertSendAndReceive(
+        ComponentPrices componentPrices = new ComponentPrices(pricesOfComponents);
+        return asyncRabbitTemplate.convertSendAndReceiveAsType(
                 directExchange.getName(),
                 "calculatePrice",
-                pricesOfComponents);
+                componentPrices,
+                new ParameterizedTypeReference<>() {
+                });
     }
     private ListenableFuture produceExchangeRate(CurrencyExchangeDto currencyExchange){
         return asyncRabbitTemplate.convertSendAndReceiveAsType(

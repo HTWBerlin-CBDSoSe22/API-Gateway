@@ -50,21 +50,17 @@ public class Component {
         return price;
     }
 
-
     public double getHeight() {
         return height;
     }
-
 
     public double getWeight() {
         return weight;
     }
 
-
     public String getColor() {
         return color;
     }
-
 
     public String getCountryOfOrigin() {
         return countryOfOrigin;

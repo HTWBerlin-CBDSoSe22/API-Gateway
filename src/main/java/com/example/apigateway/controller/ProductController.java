@@ -26,7 +26,7 @@ public class ProductController {
         return  listOfAllProducts;
     }
     @GetMapping(path = "/{productId}")
-    Product showSingleProductById(@RequestParam(defaultValue = "Euro") String newCurrency, @RequestParam(defaultValue = "Euro") String currentCurrency, @PathVariable("productId") long productId){
+    Product showSingleProductById(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String currentCurrency, @PathVariable("productId") long productId){
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, currentCurrency);
         ProductMicroserviceDto productToGet = new ProductMicroserviceDto();
         productToGet.setId(productId);
@@ -39,7 +39,7 @@ public class ProductController {
         return detailedProduct;
     }
     @PostMapping
-    Product createProduct(@RequestParam(defaultValue = "Euro") String newCurrency, @RequestParam(defaultValue = "Euro") String oldCurrency, @RequestBody ProductMicroserviceDto productToCreate){
+    Product createProduct(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String oldCurrency, @RequestBody ProductMicroserviceDto productToCreate){
         if(!productHasComponents(productToCreate))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, oldCurrency);
