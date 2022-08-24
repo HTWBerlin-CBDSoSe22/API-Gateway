@@ -60,6 +60,7 @@ public class ProductService {
                 try {
                     productToShow = assembleProduct(productMicroserviceDtoFromService, priceOfProduct, exchangeRate, currencyExchange);
                 }catch (ProductAssemblyException e){
+                    e.printStackTrace();
                 }
                 break;
             }
@@ -162,9 +163,7 @@ public class ProductService {
         return pricesOfComponents;
     }
     private boolean servicesAreDone(Future<ProductMicroserviceDto> productCreationDtoFromService, Future<Float> priceOfProduct, Future<Float> exchangeRate){
-        if(productCreationDtoFromService.isDone() && priceOfProduct.isDone() && exchangeRate.isDone())
-            return true;
-        return false;
+        return productCreationDtoFromService.isDone() && priceOfProduct.isDone() && exchangeRate.isDone();
     }
     private ProductMicroserviceDto getProductData(Future<ProductMicroserviceDto> futureProductCreationDtoFromService) throws ProductNotFoundException {
         while(true) {
