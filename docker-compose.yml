@@ -37,6 +37,17 @@ services:
     container_name: price-service
     depends_on:
       - rabbitmq
+  product-service:
+    image: jgrothe/price-service
+    environment:
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+    ports:
+      - "8086:8086"
+    expose:
+      - 8086
+    container_name: product-service
+    depends_on:
+      - rabbitmq
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq

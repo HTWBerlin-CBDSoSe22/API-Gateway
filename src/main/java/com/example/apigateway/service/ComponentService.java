@@ -56,6 +56,8 @@ public class ComponentService {
     }
 
     private boolean isComponentsListEmpty(List<Component> returnedComponentsList) {
+        if(returnedComponentsList == null)
+            return false;
         return returnedComponentsList.isEmpty();
     }
 }

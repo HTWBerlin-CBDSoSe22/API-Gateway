@@ -12,4 +12,4 @@ RUN mvn -f /home/app/pom.xml clean package -DskipTests
 FROM openjdk:17-oracle
 COPY --from=build /home/app/target/*.jar demo.jar
 EXPOSE 8088
-ENTRYPOINT ["java","-jar","-Dspring.profiles.active=prod","demo.jar"]
+ENTRYPOINT ["java","-jar","demo.jar"]

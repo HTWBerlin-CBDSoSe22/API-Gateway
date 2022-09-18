@@ -45,7 +45,7 @@ public class ProductService {
         List<ProductMicroserviceDto> listOfAllProducts;
         listOfAllProducts = rabbitTemplate.convertSendAndReceiveAsType(
                 directExchange.getName(),
-                "getInformation",
+                "getAllProducts",
                 "showProducts",
                 new ParameterizedTypeReference<>() {
                 });
