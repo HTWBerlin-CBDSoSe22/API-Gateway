@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 @Service
 public class ComponentService {
@@ -30,14 +31,14 @@ public class ComponentService {
                 "showComponents",
                 new ParameterizedTypeReference<>() {
                 });
-        if(listOfAllComponents == null) {
+        if(isComponentsListEmpty(listOfAllComponents)) {
             throw new ComponentsNotFoundException();
         }
         return listOfAllComponents;
     }
 
     public Component showSingleComponent(long componentId) throws ComponentsNotFoundException, ComponentNotDeserializeException {
-        Component singleComponent;
+        List<Component> singleComponent;
         try {
             singleComponent = rabbitTemplate.convertSendAndReceiveAsType(
                     directExchange.getName(),
@@ -48,9 +49,13 @@ public class ComponentService {
         } catch(RuntimeException e){
             throw new ComponentNotDeserializeException();
         }
-        if(singleComponent == null) {
+        if(isComponentsListEmpty(singleComponent)) {
             throw new ComponentsNotFoundException();
         }
-        return singleComponent;
+        return singleComponent.get(0);
+    }
+
+    private boolean isComponentsListEmpty(List<Component> returnedComponentsList) {
+        return returnedComponentsList.isEmpty();
     }
 }
