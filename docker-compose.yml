@@ -1,0 +1,96 @@
+version: "3.7"
+services:
+  gateway:
+    build: .
+    image: luckyluke16/gateway
+    environment:
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+      - "keycloak.auth-server-url=http://host.docker.internal:8080"
+    ports:
+      - "8088:8088"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    expose:
+      - 8088
+    container_name: gateway
+    depends_on:
+      - rabbitmq
+  currency-service:
+    image: luckyluke16/currency-service
+    environment:
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+    ports:
+      - "8087:8087"
+    expose:
+      - 8087
+    container_name: currency-service
+    depends_on:
+      - rabbitmq
+  price-service:
+    image: luckyluke16/price-service
+    environment:
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+    ports:
+      - "8085:8085"
+    expose:
+      - 8085
+    container_name: price-service
+    depends_on:
+      - rabbitmq
+  product-service:
+    image: luckyluke16/product-service
+    environment:
+      - "SPRING_RABBITMQ_HOST=rabbitmq"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-product-service:5432/test_user
+      - SPRING_DATASOURCE_USERNAME=test_user
+      - SPRING_DATASOURCE_PASSWORD=test_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create
+      - warehouse.components.url=http://host.docker.internal:8081/components
+      - warehouse.products.url=http://host.docker.internal:8081/products
+    ports:
+      - "8086:8086"
+    expose:
+      - 8086
+    container_name: product-service
+    depends_on:
+      - rabbitmq
+      - db-product-service
+      - warehouse
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    expose:
+      - 5672
+  warehouse:
+    image: luckyluke16/warehouse
+    ports:
+      - "8081:8081"
+    container_name: warehouse
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/test_user
+      - SPRING_DATASOURCE_USERNAME=test_user
+      - SPRING_DATASOURCE_PASSWORD=test_password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=create
+  db:
+    image: postgres:13.1-alpine
+    container_name: db
+    environment:
+       - POSTGRES_USER=test_user
+       - POSTGRES_PASSWORD=test_password
+    expose:
+      - 5432
+  db-product-service:
+    image: postgres:13.1-alpine
+    container_name: db-product-service
+    environment:
+      - POSTGRES_USER=test_user
+      - POSTGRES_PASSWORD=test_password
+    ports:
+      - "5432:5432"
+    expose:
+      - 5432
