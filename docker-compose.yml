@@ -16,7 +16,7 @@ services:
     depends_on:
       - rabbitmq
   currency-service:
-    image: jgrothe/currency-service
+    image: luckyluke16/currency-service
     environment:
       - "SPRING_RABBITMQ_HOST=rabbitmq"
     ports:
@@ -27,7 +27,7 @@ services:
     depends_on:
       - rabbitmq
   price-service:
-    image: jgrothe/price-service
+    image: luckyluke16/price-service
     environment:
       - "SPRING_RABBITMQ_HOST=rabbitmq"
     ports:
@@ -45,6 +45,8 @@ services:
       - SPRING_DATASOURCE_USERNAME=test_user
       - SPRING_DATASOURCE_PASSWORD=test_password
       - SPRING_JPA_HIBERNATE_DDL_AUTO=create
+      - warehouse.components.url=http://host.docker.internal:8081/components
+      - warehouse.products.url=http://host.docker.internal:8081/products
     ports:
       - "8086:8086"
     expose:
@@ -53,6 +55,7 @@ services:
     depends_on:
       - rabbitmq
       - db-product-service
+      - warehouse
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
@@ -62,7 +65,7 @@ services:
     expose:
       - 5672
   warehouse:
-    image: jgrothe/warehouse
+    image: luckyluke16/warehouse
     ports:
       - "8081:8081"
     container_name: warehouse
