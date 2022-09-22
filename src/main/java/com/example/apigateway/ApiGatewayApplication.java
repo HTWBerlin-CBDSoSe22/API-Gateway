@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
 @EnableAsync
+@EnableSwagger2
 public class ApiGatewayApplication {
 
     @Bean

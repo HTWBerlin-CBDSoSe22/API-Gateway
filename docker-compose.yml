@@ -2,7 +2,7 @@ version: "3.7"
 services:
   gateway:
     build: .
-    image: jgrothe/gateway
+    image: luckyluke16/gateway
     environment:
       - "SPRING_RABBITMQ_HOST=rabbitmq"
       - "keycloak.auth-server-url=http://host.docker.internal:8080"
@@ -38,7 +38,7 @@ services:
     depends_on:
       - rabbitmq
   product-service:
-    image: jgrothe/product-service
+    image: luckyluke16/product-service
     environment:
       - "SPRING_RABBITMQ_HOST=rabbitmq"
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db-product-service:5432/test_user
@@ -52,6 +52,7 @@ services:
     container_name: product-service
     depends_on:
       - rabbitmq
+      - db-product-service
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
