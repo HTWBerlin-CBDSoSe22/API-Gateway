@@ -128,10 +128,10 @@ public class ProductService {
             createdProductReceived = listenableFutureProductCreationDto.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-            productToCreateOrShow.setId(null);
+            productToCreateOrShow.setProductId(null);
             return new AsyncResult<>(productToCreateOrShow);
         }
-        if (createdProductReceived.getId() == null)
+        if (createdProductReceived.getProductId() == null)
             throw new ProductNotFoundOrCreatedException();
         return new AsyncResult<>(createdProductReceived);
     }

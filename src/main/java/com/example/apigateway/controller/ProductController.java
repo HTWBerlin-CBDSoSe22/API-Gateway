@@ -25,11 +25,12 @@ public class ProductController {
         listOfAllProducts = this.productService.showAllProducts();
         return  listOfAllProducts;
     }
+
     @GetMapping(path = "/{productId}")
     Product showSingleProductById(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String currentCurrency, @PathVariable("productId") long productId){
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, currentCurrency);
         ProductMicroserviceDto productToGet = new ProductMicroserviceDto();
-        productToGet.setId(productId);
+        productToGet.setProductId(productId);
         Product detailedProduct;
         try {
             detailedProduct = this.productService.showSingleProductInDetail(productToGet, currencyExchange);
@@ -38,12 +39,13 @@ public class ProductController {
         }
         return detailedProduct;
     }
+
     @PostMapping
     Product createProduct(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String oldCurrency, @RequestBody ProductMicroserviceDto productToCreate){
         if(!productHasComponents(productToCreate))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, oldCurrency);
-        productToCreate.setId(null);
+        productToCreate.setProductId(null);
         try {
             Product createdProduct = this.productService.createProduct(productToCreate, currencyExchange);
             return createdProduct;
@@ -62,6 +64,4 @@ public class ProductController {
         currencyExchange.setNewCurrency(newCurrency);
         return currencyExchange;
     }
-
-
 }

@@ -5,7 +5,7 @@ import com.example.apigateway.model.Component;
 import java.util.Set;
 
 public class ProductMicroserviceDto {
-    private Long id = null;
+    private Long productId = null;
     private String name;
     private Set<Component> consistsOf;
 
@@ -17,12 +17,12 @@ public class ProductMicroserviceDto {
         return consistsOf;
     }
 
-    public Long getId() {
-        return id;
+    public Long getProductId() {
+        return productId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setProductId(Long productId) {
+        this.productId = productId;
     }
 
     public void setName(String name) {
