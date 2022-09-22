@@ -1,6 +1,6 @@
 package com.example.apigateway.controller;
 
-import com.example.apigateway.exception.ProductNotFoundException;
+import com.example.apigateway.exception.ProductNotFoundOrCreatedException;
 import com.example.apigateway.model.CurrencyExchangeDto;
 import com.example.apigateway.model.Product.Product;
 import com.example.apigateway.model.Product.ProductMicroserviceDto;
@@ -33,7 +33,7 @@ public class ProductController {
         Product detailedProduct;
         try {
             detailedProduct = this.productService.showSingleProductInDetail(productToGet, currencyExchange);
-        } catch (ProductNotFoundException e) {
+        } catch (ProductNotFoundOrCreatedException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
         return detailedProduct;
@@ -44,14 +44,16 @@ public class ProductController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, oldCurrency);
         productToCreate.setId(null);
-        Product createdProduct = this.productService.createProduct(productToCreate, currencyExchange);
-        return createdProduct;
+        try {
+            Product createdProduct = this.productService.createProduct(productToCreate, currencyExchange);
+            return createdProduct;
+        }catch(ProductNotFoundOrCreatedException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 
     public boolean productHasComponents(ProductMicroserviceDto productToCreate){
-        if(productToCreate.getConsistsOf().isEmpty())
-            return false;
-        return true;
+        return !productToCreate.getConsistsOf().isEmpty();
     }
 
     public CurrencyExchangeDto convertCurrencies(String newCurrency, String oldCurrency){

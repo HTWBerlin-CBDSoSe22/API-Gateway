@@ -1,7 +1,7 @@
 package com.example.apigateway.service;
 
 import com.example.apigateway.exception.ProductAssemblyException;
-import com.example.apigateway.exception.ProductNotFoundException;
+import com.example.apigateway.exception.ProductNotFoundOrCreatedException;
 import com.example.apigateway.model.Component;
 import com.example.apigateway.model.ComponentPrices;
 import com.example.apigateway.model.CurrencyExchangeDto;
@@ -19,7 +19,6 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +51,7 @@ public class ProductService {
         return listOfAllProducts;
     }
 
-    public Product createProduct(ProductMicroserviceDto productToCreate, CurrencyExchangeDto currencyExchange) {
+    public Product createProduct(ProductMicroserviceDto productToCreate, CurrencyExchangeDto currencyExchange) throws ProductNotFoundOrCreatedException {
         Product productToShow = new Product();
         Future<ProductMicroserviceDto> productMicroserviceDtoFromService = getProductFromService(productToCreate);
         Future<Float> priceOfProduct = getPriceFromService(productToCreate);
@@ -70,7 +69,7 @@ public class ProductService {
         return productToShow;
     }
 
-    public Product showSingleProductInDetail(ProductMicroserviceDto productToCreateOrShow, CurrencyExchangeDto currencyExchange) throws ProductNotFoundException {
+    public Product showSingleProductInDetail(ProductMicroserviceDto productToCreateOrShow, CurrencyExchangeDto currencyExchange) throws ProductNotFoundOrCreatedException {
         Product productToShow = new Product();
         ProductMicroserviceDto productMicroserviceDtoFromService;
         Future<ProductMicroserviceDto> futureProductCreationDtoFromService = getProductFromService(productToCreateOrShow);
@@ -111,7 +110,7 @@ public class ProductService {
 
     @Async
     public Future<Float> getExchangeRateFromService(CurrencyExchangeDto currencyExchange) {
-        ListenableFuture listenableFutureCurrency = produceExchangeRate(currencyExchange);
+        ListenableFuture<String> listenableFutureCurrency = produceExchangeRate(currencyExchange);
         try {
             String exchangeRate = String.valueOf(listenableFutureCurrency.get());
             return new AsyncResult<>(Float.parseFloat(exchangeRate));
@@ -122,16 +121,19 @@ public class ProductService {
     }
 
     @Async
-    public Future<ProductMicroserviceDto> getProductFromService(ProductMicroserviceDto productToCreateOrShow) {
+    public Future<ProductMicroserviceDto> getProductFromService(ProductMicroserviceDto productToCreateOrShow) throws ProductNotFoundOrCreatedException {
         ListenableFuture<ProductMicroserviceDto> listenableFutureProductCreationDto = produceShowOrCreateProduct(productToCreateOrShow);
+        ProductMicroserviceDto createdProductReceived;
         try {
-            ProductMicroserviceDto createdProductReceived = listenableFutureProductCreationDto.get();
-            return new AsyncResult<>(createdProductReceived);
+            createdProductReceived = listenableFutureProductCreationDto.get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
             productToCreateOrShow.setId(null);
             return new AsyncResult<>(productToCreateOrShow);
         }
+        if (createdProductReceived.getId() == null)
+            throw new ProductNotFoundOrCreatedException();
+        return new AsyncResult<>(createdProductReceived);
     }
 
     private ListenableFuture<ProductMicroserviceDto> produceShowOrCreateProduct(ProductMicroserviceDto productToShowOrCreate) {
@@ -154,7 +156,7 @@ public class ProductService {
                 });
     }
 
-    private ListenableFuture produceExchangeRate(CurrencyExchangeDto currencyExchange) {
+    private ListenableFuture<String> produceExchangeRate(CurrencyExchangeDto currencyExchange) {
         return asyncRabbitTemplate.convertSendAndReceiveAsType(
                 directExchange.getName(),
                 "getExchangeRate",
@@ -164,7 +166,7 @@ public class ProductService {
     }
 
     private List<Float> getPricesOfComponentsInProduct(ProductMicroserviceDto productToShowOrCreate) {
-        List pricesOfComponents = new ArrayList();
+        List<Float> pricesOfComponents = new ArrayList();
         Set<Component> componentsOfProduct = productToShowOrCreate.getConsistsOf();
         if (componentsOfProduct != null) {
             for (Component c : componentsOfProduct) {
@@ -178,7 +180,7 @@ public class ProductService {
         return productCreationDtoFromService.isDone() && priceOfProduct.isDone() && exchangeRate.isDone();
     }
 
-    private ProductMicroserviceDto getProductData(Future<ProductMicroserviceDto> futureProductCreationDtoFromService) throws ProductNotFoundException {
+    private ProductMicroserviceDto getProductData(Future<ProductMicroserviceDto> futureProductCreationDtoFromService) throws ProductNotFoundOrCreatedException {
         while (true) {
             if (futureProductCreationDtoFromService.isDone()) {
                 break;
@@ -187,7 +189,7 @@ public class ProductService {
         try {
             return futureProductCreationDtoFromService.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new ProductNotFoundException();
+            throw new ProductNotFoundOrCreatedException();
         }
     }
 
