@@ -72,11 +72,13 @@ public class ProductService {
     public Product showSingleProductInDetail(ProductMicroserviceDto productToCreateOrShow, CurrencyExchangeDto currencyExchange) throws ProductNotFoundOrCreatedException {
         Product productToShow = new Product();
         ProductMicroserviceDto productMicroserviceDtoFromService;
+
         Future<ProductMicroserviceDto> futureProductCreationDtoFromService = getProductFromService(productToCreateOrShow);
         Future<Float> exchangeRate = getExchangeRateFromService(currencyExchange);
         productMicroserviceDtoFromService = getProductData(futureProductCreationDtoFromService);
         Future<Float> priceOfProduct = getPriceFromService(productMicroserviceDtoFromService);
         productToShow = waitForPriceOfProduct(productToShow, futureProductCreationDtoFromService, priceOfProduct, exchangeRate, currencyExchange);
+
         return productToShow;
     }
 
@@ -97,6 +99,7 @@ public class ProductService {
     @Async
     public Future<Float> getPriceFromService(ProductMicroserviceDto productToCreateOrShow) {
         ListenableFuture<ProductPrice> listenableFuturePrice = produceCalculationOfPrice(productToCreateOrShow);
+
         try {
             if (listenableFuturePrice != null) {
                 ProductPrice priceOfProduct = listenableFuturePrice.get();
@@ -105,6 +108,7 @@ public class ProductService {
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
+
         return new AsyncResult<>(-1f);
     }
 

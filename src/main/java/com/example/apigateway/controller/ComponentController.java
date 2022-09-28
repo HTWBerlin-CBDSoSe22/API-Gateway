@@ -20,21 +20,25 @@ public class ComponentController {
     @GetMapping
     List<Component> getAllComponents() {
         List<Component> listOfAllComponents;
+
         try {
             listOfAllComponents = this.componentService.showAllComponents();
         } catch (ComponentsNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+
         return  listOfAllComponents;
     }
     @GetMapping(path = "/{componentId}")
     Component findSingleComponentById(@PathVariable("componentId") long componentId) {
         Component singleComponent;
+
         try {
             singleComponent = this.componentService.showSingleComponent(componentId);
         } catch (ComponentsNotFoundException | ComponentNotDeserializeException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
+
         return  singleComponent;
     }
 }
