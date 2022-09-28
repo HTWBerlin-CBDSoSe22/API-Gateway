@@ -23,12 +23,13 @@ public class ProductController {
     List<ProductMicroserviceDto> showAllProducts() {
         List<ProductMicroserviceDto> listOfAllProducts;
         listOfAllProducts = this.productService.showAllProducts();
+
         return  listOfAllProducts;
     }
 
     @GetMapping(path = "/{productId}")
     Product showSingleProductById(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String currentCurrency, @PathVariable("productId") long productId){
-        CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, currentCurrency);
+        CurrencyExchangeDto currencyExchange = convertCurrenciesToEchangeDto(newCurrency, currentCurrency);
         ProductMicroserviceDto productToGet = new ProductMicroserviceDto();
         productToGet.setProductId(productId);
         Product detailedProduct;
@@ -44,8 +45,10 @@ public class ProductController {
     Product createProduct(@RequestParam(defaultValue = "EUR") String newCurrency, @RequestParam(defaultValue = "EUR") String oldCurrency, @RequestBody ProductMicroserviceDto productToCreate){
         if(!productHasComponents(productToCreate))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        CurrencyExchangeDto currencyExchange = convertCurrencies(newCurrency, oldCurrency);
+
+        CurrencyExchangeDto currencyExchange = convertCurrenciesToEchangeDto(newCurrency, oldCurrency);
         productToCreate.setProductId(null);
+
         try {
             Product createdProduct = this.productService.createProduct(productToCreate, currencyExchange);
             return createdProduct;
@@ -58,10 +61,11 @@ public class ProductController {
         return !productToCreate.getConsistsOf().isEmpty();
     }
 
-    public CurrencyExchangeDto convertCurrencies(String newCurrency, String oldCurrency){
+    public CurrencyExchangeDto convertCurrenciesToEchangeDto(String newCurrency, String oldCurrency){
         CurrencyExchangeDto currencyExchange = new CurrencyExchangeDto();
         currencyExchange.setOldCurrency(oldCurrency);
         currencyExchange.setNewCurrency(newCurrency);
+
         return currencyExchange;
     }
 }

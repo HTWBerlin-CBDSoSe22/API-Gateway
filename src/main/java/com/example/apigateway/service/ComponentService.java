@@ -3,14 +3,12 @@ package com.example.apigateway.service;
 import com.example.apigateway.exception.ComponentNotDeserializeException;
 import com.example.apigateway.exception.ComponentsNotFoundException;
 import com.example.apigateway.model.Component;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 @Service
 public class ComponentService {
@@ -31,7 +29,7 @@ public class ComponentService {
                 "showComponents",
                 new ParameterizedTypeReference<>() {
                 });
-        if(isComponentsListEmpty(listOfAllComponents)) {
+        if(isComponentListEmpty(listOfAllComponents)) {
             throw new ComponentsNotFoundException();
         }
         return listOfAllComponents;
@@ -39,6 +37,7 @@ public class ComponentService {
 
     public Component showSingleComponent(long componentId) throws ComponentsNotFoundException, ComponentNotDeserializeException {
         List<Component> singleComponent;
+
         try {
             singleComponent = rabbitTemplate.convertSendAndReceiveAsType(
                     directExchange.getName(),
@@ -49,15 +48,15 @@ public class ComponentService {
         } catch(RuntimeException e){
             throw new ComponentNotDeserializeException();
         }
-        if(isComponentsListEmpty(singleComponent)) {
+        if(isComponentListEmpty(singleComponent))
             throw new ComponentsNotFoundException();
-        }
+
         return singleComponent.get(0);
     }
 
-    private boolean isComponentsListEmpty(List<Component> returnedComponentsList) {
+    private boolean isComponentListEmpty(List<Component> returnedComponentsList) {
         if(returnedComponentsList == null)
-            return false;
+            return true;
         return returnedComponentsList.isEmpty();
     }
 }
